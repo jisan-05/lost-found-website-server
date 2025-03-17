@@ -26,29 +26,41 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    const database = client.db('LostFound').collection('LostFoundCollection')
+    const lostFoundItems = client.db('LostFound').collection('LostFoundCollection')
+    const RecoveredItems = client.db('LostFound').collection('RecoveredCollection')
 
     app.post('/items', async(req,res) => {
       const item = req.body;
-      const result = await database.insertOne(item)
+      const result = await lostFoundItems.insertOne(item)
       res.send(result)
     })
+
+    // Post Recovered Items 
+    app.post("/recoveredItems", async(req,res) => {
+      const item = req.body;
+      // console.log(item)
+      const result = await RecoveredItems.insertOne(item)
+      res.send(result) 
+    })
+
     // Get Specific Items
     app.get('/items/:id', async(req,res)=>{
       const id = req.params.id;
       console.log(id)
       const query = {_id: new ObjectId(id)}
-      const result = await database.findOne(query)
+      const result = await lostFoundItems.findOne(query)
       res.send(result)
     })
 
 
     // Get All Items 
     app.get('/items',async(req,res)=>{
-      const query = database.find()
+      const query = lostFoundItems.find()
       const result = await query.toArray()
       res.send(result)
     })
+
+    
 
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
