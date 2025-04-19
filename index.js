@@ -95,6 +95,31 @@ async function run() {
       console.log(id,status)
     })
 
+    // Update 1 item
+    app.patch('/update/:id', async(req,res)=>{
+      const id = req.params.id;
+      const UpdateItem = req.body;
+      const filter = {_id:new ObjectId(id)};
+      const options = { upsert: true };
+      const updateDoc = {
+        $set:{
+          postType:UpdateItem.postType,
+          Thumbnail:UpdateItem.Thumbnail,
+          Title:UpdateItem.Title,
+          Description:UpdateItem.Description,
+          Category:UpdateItem.Category,
+          Location:UpdateItem.Location,
+          Date:UpdateItem.Date,
+        }
+      }
+
+      const result = await lostFoundItems.updateOne(filter,updateDoc,options)
+      res.send(result)
+      console.log(id.status)
+    })
+
+
+
     // delete specific item
     app.delete('/items/:id',async(req,res)=>{
       const id = req.params.id;
