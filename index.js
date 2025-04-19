@@ -68,6 +68,15 @@ async function run() {
       // const result = await query.toArray()
       res.send(result)
     })
+    // get recovered Item with filter specific email 
+    app.get('/allRecovered/:email',async(req,res)=>{
+      const email = req.params.email;
+      const filter = {
+        ItemCreator: email,
+      }
+      const result = await RecoveredItems.find(filter).toArray()
+      res.send(result)
+    })
 
     // Update 1 item
     app.patch('/items/:id', async(req,res)=>{
