@@ -26,7 +26,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    const lostFoundItems = client.db('LostFound').collection('LostFoundCollection')
+    const lostFoundItems = client.db('LostFound').collection('ItemsCollection')
     const RecoveredItems = client.db('LostFound').collection('RecoveredCollection')
 
     app.post('/items', async(req,res) => {
@@ -44,7 +44,7 @@ async function run() {
     })
 
     // Get Specific Items
-    app.get('/items/:id', async(req,res)=>{
+    app.get('/items/id/:id', async(req,res)=>{
       const id = req.params.id;
       console.log(id)
       const query = {_id: new ObjectId(id)}
@@ -57,6 +57,40 @@ async function run() {
     app.get('/items',async(req,res)=>{
       const query = lostFoundItems.find()
       const result = await query.toArray()
+      res.send(result)
+    })
+    // Get specific user Data items
+    app.get('/items/user/:email',async(req,res)=>{
+      const email = req.params.email;
+      const filter = {contactInfo: email}
+      const result = await lostFoundItems.find(filter).toArray()
+      // const query = lostFoundItems.find()
+      // const result = await query.toArray()
+      res.send(result)
+    })
+
+    // Update 1 item
+    app.patch('/items/:id', async(req,res)=>{
+      const id = req.params.id;
+      const filter = {_id:new ObjectId(id)};
+      const options = { upsert: true };
+      const {status} = req.body;
+      const updateDoc = {
+        $set:{
+          status:status
+        }
+      }
+
+      const result = await lostFoundItems.updateOne(filter,updateDoc,options)
+      res.send(result)
+      console.log(id,status)
+    })
+
+    // delete specific item
+    app.delete('/items/:id',async(req,res)=>{
+      const id = req.params.id;
+      const query = {_id:new ObjectId(id)}
+      const result = lostFoundItems.deleteOne(query)
       res.send(result)
     })
 
