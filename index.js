@@ -35,6 +35,22 @@ async function run() {
             .db("LostFound")
             .collection("RecoveredCollection");
 
+        // Verify Jwt
+        const verifyJwt = (req,res,next) =>{
+            const token = req.cookies.token
+            if(!token){
+                return res.status(401).send({message: "Unauthorized Access"})
+            }
+            jwt.verify(token,process.env.JWT_SECRET,(err,decoded)=>{
+                if(err){
+                    return res.status(401).send({message:"Unauthorized Access"})
+                }
+                req.user = decoded;
+                next()
+            })
+        }
+
+
         // Auth Related Apis
         app.post("/jwt", async (req, res) => {
             const user = req.body;
@@ -79,9 +95,14 @@ async function run() {
             res.send(result);
         });
         // Get specific user Data items
-        app.get("/items/user/:email", async (req, res) => {
-            const email = req.params.email;
+        app.get("/items/user/:email",verifyJwt, async (req, res) => {
+            const email = req?.params?.email;
             const filter = { contactInfo: email };
+
+            if(req.user.email !== req.params.email){
+                return res.status(403).send({message: "forbidden access"})
+            }
+
             const result = await lostFoundItems.find(filter).toArray();
 
             console.log("Cookie Paisi", req.cookies)
