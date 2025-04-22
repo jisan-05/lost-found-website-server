@@ -35,7 +35,7 @@ async function run() {
             .db("LostFound")
             .collection("RecoveredCollection");
 
-        // Verify Jwt
+        // Verify Jwt  -- middleware
         const verifyJwt = (req,res,next) =>{
             const token = req.cookies.token
             if(!token){
@@ -55,7 +55,7 @@ async function run() {
         app.post("/jwt", async (req, res) => {
             const user = req.body;
             const token = jwt.sign(user, process.env.JWT_SECRET, {
-                expiresIn: "5d",
+                expiresIn: "7d",
             });
             res
             .cookie('token',token,{
@@ -64,6 +64,14 @@ async function run() {
             })
             .send({success:true});
         });
+        // logout
+        app.post('/logout',async(req,res)=>{
+            res.clearCookie('token',{
+                httpOnly:true,
+                secure:false
+            })
+            .send({success: true})
+        })
 
         app.post("/items", async (req, res) => {
             const item = req.body;
@@ -94,7 +102,7 @@ async function run() {
             const result = await query.toArray();
             res.send(result);
         });
-        // Get specific user Data items
+        // Get specific user Data items -- jwt done 
         app.get("/items/user/:email",verifyJwt, async (req, res) => {
             const email = req?.params?.email;
             const filter = { contactInfo: email };
