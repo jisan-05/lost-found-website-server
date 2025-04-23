@@ -106,6 +106,20 @@ async function run() {
             const result = await query.toArray();
             res.send(result);
         });
+
+        // get all items
+        app.get('/all-items',async(req,res)=>{
+            const filter = req.query.filter;
+            const search = req.query.search;
+            // console.log(search)
+            let query = {Title:{
+                $regex:search, $options:'i'
+            }}
+            if(filter)query.Category = filter;
+            const result = await lostFoundItems.find(query).toArray()
+            res.send(result)
+        })
+
         // Get specific user Data items -- jwt done 
         app.get("/items/user/:email",verifyJwt, async (req, res) => {
             const email = req?.params?.email;
