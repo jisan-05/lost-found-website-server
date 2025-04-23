@@ -65,7 +65,7 @@ async function run() {
             .send({success:true});
         });
         // logout
-        app.post('/logout',async(req,res)=>{
+        app.post('/logout',(req,res)=>{
             res.clearCookie('token',{
                 httpOnly:true,
                 secure:false
@@ -73,8 +73,11 @@ async function run() {
             .send({success: true})
         })
 
-        app.post("/items", async (req, res) => {
+        app.post("/items",verifyJwt, async (req, res) => {
             const item = req.body;
+            if(req.user.emil !== req.params.email){
+                return res.status(403).send({message: 'forbidden access'})
+            }
             const result = await lostFoundItems.insertOne(item);
             res.send(result);
         });
@@ -98,6 +101,7 @@ async function run() {
 
         // Get All Items
         app.get("/items", async (req, res) => {
+            
             const query = lostFoundItems.find();
             const result = await query.toArray();
             res.send(result);
@@ -120,8 +124,13 @@ async function run() {
             res.send(result);
         });
         // get recovered Item with filter specific email
-        app.get("/allRecovered/:email", async (req, res) => {
+        app.get("/allRecovered/:email",verifyJwt, async (req, res) => {
             const email = req.params.email;
+
+            if(req.user.email !== req.params.email){
+                return res.status(403).send({message: "forbidden access"})
+            }
+
             const filter = {
                 ItemCreator: email,
             };
@@ -151,8 +160,11 @@ async function run() {
         });
 
         // Update 1 item
-        app.patch("/update/:id", async (req, res) => {
+        app.patch("/update/:id",verifyJwt, async (req, res) => {
             const id = req.params.id;
+            if(req.user.email !== req.query.email){
+                return res.status(403).send({message: "forbidden access"})
+            }
             const UpdateItem = req.body;
             const filter = { _id: new ObjectId(id) };
             const options = { upsert: true };
@@ -178,8 +190,11 @@ async function run() {
         });
 
         // delete specific item
-        app.delete("/items/:id", async (req, res) => {
+        app.delete("/items/:id",verifyJwt, async (req, res) => {
             const id = req.params.id;
+            if(req.user.email !== req.query.email){
+                return res.status(403).send({message: 'forbidden access'})
+            }
             const query = { _id: new ObjectId(id) };
             const result = lostFoundItems.deleteOne(query);
             res.send(result);
