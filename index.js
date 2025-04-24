@@ -120,6 +120,12 @@ async function run() {
             res.send(result)
         })
 
+        // total number of items api
+        app.get('/itemsCount',async(req,res)=>{
+            const count = await lostFoundItems.estimatedDocumentCount()
+            res.send({count})
+        })
+
         // Get specific user Data items -- jwt done 
         app.get("/items/user/:email",verifyJwt, async (req, res) => {
             const email = req?.params?.email;
