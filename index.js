@@ -11,7 +11,7 @@ const app = express();
 app.use(cookieParser())
 app.use(cors({
     origin:['http://localhost:5173'],
-    origin:['https://lost-found-11.netlify.app'],
+    // origin:['https://lost-found-11.netlify.app'],
     credentials:true
 }));
 app.use(express.json());
@@ -61,7 +61,7 @@ async function run() {
             res
             .cookie('token',token,{
               httpOnly:true,
-              secure:true
+              secure:false
             })
             .send({success:true});
         });
@@ -69,7 +69,7 @@ async function run() {
         app.post('/logout',(req,res)=>{
             res.clearCookie('token',{
                 httpOnly:true,
-                secure:true
+                secure:false
             })
             .send({success: true})
         })
@@ -103,7 +103,11 @@ async function run() {
         // Get All Items
         app.get("/items", async (req, res) => {
             
-            const query = lostFoundItems.find();
+            const page = parseInt(req.query.page) || 0;
+            const size = parseInt(req.query.size) || 10;
+            const skip = (page * size)
+
+            const query = lostFoundItems.find().skip(skip).limit(size);
             const result = await query.toArray();
             res.send(result);
         });
@@ -112,12 +116,18 @@ async function run() {
         app.get('/all-items',async(req,res)=>{
             const filter = req.query.filter;
             const search = req.query.search;
+
+            let page = parseInt(req.query.page)
+            let size = parseInt(req.query.size)
+
+            let skip = page * size;
+
             // console.log(search)
             let query = {Title:{
                 $regex:search, $options:'i'
             }}
             if(filter)query.Category = filter;
-            const result = await lostFoundItems.find(query).toArray()
+            const result = await lostFoundItems.find(query).skip(skip).limit(size).toArray()
             res.send(result)
         })
 
